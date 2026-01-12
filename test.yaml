@@ -1,0 +1,842 @@
+substitutions:
+  device_name: heatpump-listener
+  friendly_name: Heat Pump Listener - Quatt
+  time_timezone: Europe/Amsterdam
+  throttling_value: 10s
+esphome:
+  name: heatpump-listener
+  friendly_name: Heat Pump Listener - Quatt
+  min_version: 2025.12.0
+  project:
+    name: electropaultje.heatpump-listener
+    version: 0.1.0
+  build_path: build\heatpump-listener
+  platformio_options: {}
+  environment_variables: {}
+  includes: []
+  includes_c: []
+  libraries: []
+  name_add_mac_suffix: false
+  debug_scheduler: false
+  areas: []
+  devices: []
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: 5.5.1
+    sdkconfig_options: {}
+    log_level: ERROR
+    advanced:
+      compiler_optimization: SIZE
+      enable_idf_experimental_features: false
+      enable_lwip_assert: true
+      ignore_efuse_custom_mac: false
+      ignore_efuse_mac_crc: false
+      enable_lwip_mdns_queries: true
+      enable_lwip_bridge_interface: false
+      enable_lwip_tcpip_core_locking: true
+      enable_lwip_check_thread_safety: true
+      disable_libc_locks_in_iram: true
+      disable_vfs_support_termios: true
+      disable_vfs_support_select: true
+      disable_vfs_support_dir: true
+      freertos_in_iram: false
+      ringbuf_in_iram: false
+      execute_from_psram: false
+      loop_task_stack_size: 8192
+    components: []
+    platform_version: https://github.com/pioarduino/platform-espressif32/releases/download/55.03.31-2/platform-espressif32.zip
+    source: pioarduino/framework-espidf@https://github.com/pioarduino/esp-idf/releases/download/v5.5.1/esp-idf-v5.5.1.tar.xz
+  flash_size: 4MB
+  variant: ESP32
+  cpu_frequency: 160MHZ
+external_components:
+  - source:
+      url: https://github.com/electropaultje/modbus-spy-esphome.git
+      ref: latest-stable
+      type: git
+    refresh: 1d
+    components: all
+logger:
+  level: INFO
+  baud_rate: 115200
+  tx_buffer_size: 512
+  deassert_rts_dtr: false
+  task_log_buffer_size: 768
+  hardware_uart: UART0
+  logs: {}
+  runtime_tag_levels: false
+api:
+  port: 6053
+  password: \033[5m''\033[6m
+  reboot_timeout: 15min
+  batch_delay: 100ms
+  custom_services: false
+  homeassistant_services: false
+  homeassistant_states: false
+  listen_backlog: 4
+  max_connections: 8
+  max_send_queue: 8
+ota:
+  - platform: web_server
+  - platform: esphome
+    version: 2
+    port: 3232
+wifi:
+  ap:
+    ssid: \033[5mheatpump\033[6m
+    password: \033[5mheatpump\033[6m
+    ap_timeout: 90s
+  domain: .local
+  reboot_timeout: 15min
+  power_save_mode: LIGHT
+  fast_connect: false
+  enable_btm: false
+  enable_rrm: false
+  passive_scan: false
+  enable_on_boot: true
+  min_auth_mode: WPA2
+  use_address: heatpump-listener.local
+captive_portal: {}
+modbus_spy:
+  - id: modbusspy
+    log_not_configured_data: false
+    flow_control_pin:
+      number: 21
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+light:
+  - platform: binary
+    id: led_yellow
+    output: led_yellow_output
+    disabled_by_default: false
+    restore_mode: ALWAYS_OFF
+    name: led_yellow
+    internal: true
+button:
+  - platform: restart
+    name: Restart heatpump listener
+    disabled_by_default: false
+    icon: mdi:restart
+    entity_category: config
+    device_class: restart
+  - platform: factory_reset
+    id: button_factory_reset
+    disabled_by_default: false
+    icon: mdi:restart-alert
+    entity_category: config
+    device_class: restart
+    name: button_factory_reset
+    internal: true
+web_server:
+  port: 80
+  version: 3
+  enable_private_network_access: true
+  include_internal: false
+  log: true
+  css_url: ''
+  js_url: https://oi.esphome.io/v3/www.js
+script:
+  - id: blink_light
+    parameters:
+      calling_component: string
+    then:
+      - if:
+          condition:
+            lambda: !lambda |-
+              return true; //return id(green_led_select).state == calling_component;
+          then:
+            - light.turn_on:
+                id: led_yellow
+                state: true
+            - delay: 250ms
+            - light.turn_off:
+                id: led_yellow
+                state: false
+    mode: single
+uart:
+  - id: uart_component
+    rx_pin:
+      number: 32
+      mode:
+        input: true
+        output: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+    tx_pin:
+      number: 33
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+    rx_full_threshold: 1
+    rx_timeout: 1
+    parity: EVEN
+    baud_rate: 19200
+    rx_buffer_size: 256
+    stop_bits: 1
+    data_bits: 8
+status_led:
+  pin:
+    number: 19
+    mode:
+      output: true
+      input: false
+      open_drain: false
+      pullup: false
+      pulldown: false
+    inverted: false
+    ignore_pin_validation_error: false
+    ignore_strapping_warning: false
+    drive_strength: 20.0
+output:
+  - platform: gpio
+    id: led_yellow_output
+    pin:
+      number: 18
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+one_wire:
+  - platform: gpio
+    id: one_wire_1
+    pin:
+      number: 4
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+  - platform: gpio
+    id: one_wire_2
+    pin:
+      number: 5
+      ignore_strapping_warning: true
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      drive_strength: 20.0
+  - platform: gpio
+    id: one_wire_3
+    pin:
+      number: 27
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+sensor:
+  - platform: dallas_temp
+    id: temperature_sensor_1
+    name: Dallas temperature 1
+    one_wire_id: one_wire_1
+    icon: mdi:thermometer
+    index: 0
+    update_interval: 15s
+    filters:
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+    unit_of_measurement: °C
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+    resolution: 12
+  - platform: dallas_temp
+    id: temperature_sensor_2
+    name: Dallas temperature 2
+    one_wire_id: one_wire_1
+    icon: mdi:thermometer
+    index: 1
+    update_interval: 15s
+    filters:
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+    unit_of_measurement: °C
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+    resolution: 12
+  - platform: dallas_temp
+    id: temperature_sensor_3
+    name: Dallas temperature 3
+    one_wire_id: one_wire_1
+    icon: mdi:thermometer
+    index: 2
+    update_interval: 15s
+    filters:
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+    unit_of_measurement: °C
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+    resolution: 12
+  - platform: modbus_spy
+    name: AC voltage
+    device_class: voltage
+    accuracy_decimals: 0
+    state_class: measurement
+    unit_of_measurement: V
+    device_address: 1
+    register_address: 42101
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: AC current
+    device_class: current
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: A
+    device_address: 1
+    register_address: 42102
+    filters:
+      - throttle: 10s
+      - multiply: 0.1
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Compressor working speed demand
+    device_class: frequency
+    accuracy_decimals: 0
+    state_class: measurement
+    unit_of_measurement: Hz
+    device_address: 1
+    register_address: 42103
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Compressor working speed actual
+    device_class: frequency
+    accuracy_decimals: 0
+    state_class: measurement
+    unit_of_measurement: Hz
+    device_address: 1
+    register_address: 42104
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Fan speed demand
+    device_class: frequency
+    accuracy_decimals: 0
+    state_class: measurement
+    unit_of_measurement: rpm
+    device_address: 1
+    register_address: 42105
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Fan speed actual
+    device_class: frequency
+    accuracy_decimals: 0
+    state_class: measurement
+    unit_of_measurement: rpm
+    device_address: 1
+    register_address: 42106
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Electric Expansion Valve
+    state_class: measurement
+    device_address: 1
+    register_address: 42108
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Outside temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42111
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Evaporator coil temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42112
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Discharge temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42113
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Suction temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42114
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Evaporator pressure
+    device_class: pressure
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: bar
+    device_address: 1
+    register_address: 42117
+    filters:
+      - throttle: 10s
+      - multiply: 0.1
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Condensor pressure
+    device_class: pressure
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: bar
+    device_address: 1
+    register_address: 42118
+    filters:
+      - throttle: 10s
+      - multiply: 0.1
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Condensing temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42132
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Evaporating temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42133
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Water in temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42134
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Water out temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42135
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Condensor coil temperature
+    device_class: temperature
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: °C
+    icon: mdi:thermometer
+    device_address: 1
+    register_address: 42136
+    filters:
+      - throttle: 10s
+      - offset: -3000.0
+      - multiply: 0.01
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Pump power
+    device_class: power
+    accuracy_decimals: 1
+    state_class: measurement
+    unit_of_measurement: W
+    device_address: 1
+    register_address: 42138
+    filters:
+      - throttle: 10s
+      - multiply: 0.1
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Pump flow
+    device_class: volume_flow_rate
+    accuracy_decimals: 2
+    state_class: measurement
+    unit_of_measurement: L/h
+    icon: mdi:gauge
+    device_address: 1
+    register_address: 42139
+    filters:
+      - throttle: 10s
+      - multiply: 0.618
+      - delta:
+          value: 0.1
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Failure state 1
+    device_address: 1
+    register_address: 42120
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Failure state 2
+    device_address: 1
+    register_address: 42121
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Failure state 3
+    device_address: 1
+    register_address: 42122
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: Firmware version
+    device_address: 1
+    register_address: 42123
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    disabled_by_default: false
+    force_update: false
+  - platform: modbus_spy
+    name: EEPROM version
+    device_address: 1
+    register_address: 42124
+    filters:
+      - throttle: 10s
+      - delta:
+          value: 1.0
+          type: absolute
+    on_raw_value:
+      - then:
+          - script.execute:
+              id: blink_light
+              calling_component: Modbus
+    disabled_by_default: false
+    force_update: false
+binary_sensor:
+  - platform: gpio
+    id: factory_reset_pin
+    pin:
+      number: 34
+      inverted: true
+      mode:
+        input: true
+        output: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+    on_click:
+      - then:
+          - repeat:
+              count: 5
+              then:
+                - light.turn_on:
+                    id: led_yellow
+                    state: true
+                - delay: 200ms
+                - light.turn_off:
+                    id: led_yellow
+                    state: false
+                - delay: 200ms
+          - button.press:
+              id: button_factory_reset
+        min_length: 50ms
+        max_length: 350ms
+    disabled_by_default: false
+    use_interrupt: true
+    interrupt_type: ANY
+    name: factory_reset_pin
+    internal: true
+  - platform: modbus_spy
+    name: Fan low speed mode
+    device_address: 1
+    register_address: 42109
+    bit: 0
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: Bottom heater
+    device_address: 1
+    register_address: 42109
+    bit: 2
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: Crankcase heater
+    device_address: 1
+    register_address: 42109
+    bit: 3
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: Fan defrost speed mode
+    device_address: 1
+    register_address: 42109
+    bit: 4
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: Fan high speed mode
+    device_address: 1
+    register_address: 42109
+    bit: 5
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: 4way valve
+    device_address: 1
+    register_address: 42109
+    bit: 6
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: Pump relay
+    device_address: 1
+    register_address: 42109
+    bit: 11
+    disabled_by_default: false
+  - platform: modbus_spy
+    name: Defrost mode
+    icon: mdi:snowflake
+    device_address: 1
+    register_address: 42119
+    disabled_by_default: false
+    bit: -1
+  - platform: modbus_spy
+    name: Pump 1 active
+    device_address: 11
+    register_address: 41301
+    disabled_by_default: false
+    bit: -1
+switch:
+  - platform: gpio
+    pin:
+      number: 22
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+    name: Relais 1
+    restore_mode: RESTORE_DEFAULT_OFF
+    disabled_by_default: false
+    interlock_wait_time: 0ms
+  - platform: gpio
+    pin:
+      number: 23
+      mode:
+        output: true
+        input: false
+        open_drain: false
+        pullup: false
+        pulldown: false
+      inverted: false
+      ignore_pin_validation_error: false
+      ignore_strapping_warning: false
+      drive_strength: 20.0
+    name: Relais 2
+    restore_mode: RESTORE_DEFAULT_OFF
+    disabled_by_default: false
+    interlock_wait_time: 0ms
+

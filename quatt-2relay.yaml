@@ -1,0 +1,22 @@
+substitutions:
+  device_name: heatpump-listener
+  friendly_name: Heat Pump Listener - Quatt
+  time_timezone: "Europe/Amsterdam"
+  throttling_value: 10s
+
+packages:
+  base: !include packages/base.yaml
+  pcb: !include packages/pcb3.yaml
+  heatpump: !include packages/quatt.yaml
+
+switch:
+  - platform: gpio
+    pin: GPIO22
+    name: Relay 1
+    restore_mode: RESTORE_DEFAULT_OFF
+  - platform: gpio
+    pin: GPIO23
+    name: Relay 2
+    restore_mode: RESTORE_DEFAULT_OFF
+
+
