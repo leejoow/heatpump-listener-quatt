@@ -4,6 +4,36 @@ uart:
 
 sensor:
   - platform: modbus_spy
+    name: "${prefix}Working mode actual"
+    device_address: ${device_address}
+    register_address: 42101
+    filters:
+      - throttle: ${throttling_value}
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: "${id_prefix}working_mode"
+            state: !lambda |-
+              switch ((int)x)
+              {
+                case 0:
+                  return "Standby";
+                case 1:
+                  return "Cooling";
+                case 2:
+                  return "Heating";
+                case 3:
+                  return "Hot water";
+                case 4:
+                  return "Forced defrosting";
+                case 5:
+                  return "Data writing";
+                case 6:
+                  return "Inspection (reserved)";
+                case 7:
+                  return "Reserved";
+              }
+  - platform: modbus_spy
     name: "${prefix}AC voltage"
     device_class: "voltage"
     accuracy_decimals: 0
@@ -382,3 +412,8 @@ binary_sensor:
     bit: 12
     web_server:
       sorting_group_id: sorting_group_alarms
+
+text_sensor:
+  - platform: template
+    name: "${prefix}Working mode"
+    id: "${id_prefix}working_mode"

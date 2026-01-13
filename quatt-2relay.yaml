@@ -10,6 +10,7 @@ packages:
   heatpump1: !include
     file: packages/quatt.yaml
     vars:
+      id_prefix: ""
       prefix: ""
       device_address: 0x01
 
