@@ -7,7 +7,11 @@ substitutions:
 packages:
   base: !include packages/base.yaml
   pcb: !include packages/pcb3.yaml
-  heatpump: !include packages/quatt.yaml
+  heatpump1: !include
+    file: packages/quatt.yaml
+    vars:
+      prefix: ""
+      device_address: 0x01
 
 switch:
   - platform: gpio

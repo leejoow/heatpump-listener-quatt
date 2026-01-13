@@ -38,25 +38,22 @@ sensor:
     name: Dallas temperature 1
     one_wire_id: one_wire_1
     icon: mdi:thermometer
-    index: 0
     update_interval: 15s
     filters:
       - delta: 0.1
   - platform: dallas_temp
     id: temperature_sensor_2
     name: Dallas temperature 2
-    one_wire_id: one_wire_1
+    one_wire_id: one_wire_2
     icon: mdi:thermometer
-    index: 1
     update_interval: 15s
     filters:
       - delta: 0.1
   - platform: dallas_temp
     id: temperature_sensor_3
     name: Dallas temperature 3
-    one_wire_id: one_wire_1
+    one_wire_id: one_wire_3
     icon: mdi:thermometer
-    index: 2
     update_interval: 15s
     filters:
       - delta: 0.1
