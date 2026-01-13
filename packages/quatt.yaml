@@ -4,15 +4,15 @@ uart:
 
 sensor:
   - platform: modbus_spy
-    name: "${prefix}Working mode actual"
+    id: ${id_prefix}working_mode_actual
     device_address: ${device_address}
-    register_address: 42101
+    register_address: 42100
     filters:
       - throttle: ${throttling_value}
     on_value:
       then:
         - text_sensor.template.publish:
-            id: "${id_prefix}working_mode"
+            id: "${id_prefix}working_mode_text"
             state: !lambda |-
               switch ((int)x)
               {
@@ -30,7 +30,7 @@ sensor:
                   return "Data writing";
                 case 6:
                   return "Inspection (reserved)";
-                case 7:
+                default:
                   return "Reserved";
               }
   - platform: modbus_spy
@@ -80,7 +80,6 @@ sensor:
       - delta: 1
   - platform: modbus_spy
     name: "${prefix}Fan speed demand"
-    device_class: "frequency"
     accuracy_decimals: 0
     state_class: "measurement"
     unit_of_measurement: "rpm"
@@ -91,7 +90,6 @@ sensor:
       - delta: 1
   - platform: modbus_spy
     name: "${prefix}Fan speed actual"
-    device_class: "frequency"
     accuracy_decimals: 0
     state_class: "measurement"
     unit_of_measurement: "rpm"
@@ -324,6 +322,32 @@ sensor:
           id: blink_light
           calling_component: Modbus
 
+  # Function 6 registers
+  - platform: modbus_spy
+    name: "${prefix}Compressor level set by Cic"
+    device_address: ${device_address}
+    register_address: 42000
+    filters:
+      - throttle: ${throttling_value}
+  - platform: modbus_spy
+    name: "${prefix}Working mode set by Cic"
+    device_address: ${device_address}
+    register_address: 44000
+    filters:
+      - throttle: ${throttling_value}
+  - platform: modbus_spy
+    name: "${prefix}Pump mode set by Cic"
+    device_address: ${device_address}
+    register_address: 42011
+    filters:
+      - throttle: ${throttling_value}
+  - platform: modbus_spy
+    name: "${prefix}Pump level set by Cic"
+    device_address: ${device_address}
+    register_address: 42016
+    filters:
+      - throttle: ${throttling_value}
+
 
 binary_sensor:
   - platform: modbus_spy
@@ -415,5 +439,5 @@ binary_sensor:
 
 text_sensor:
   - platform: template
-    name: "${prefix}Working mode"
-    id: "${id_prefix}working_mode"
+    name: "${prefix}Working mode actual"
+    id: "${id_prefix}working_mode_text"

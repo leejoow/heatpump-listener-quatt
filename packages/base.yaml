@@ -12,7 +12,8 @@ esp32:
     type: esp-idf
 
 external_components:
-  - source: github://electropaultje/modbus-spy-esphome@latest-stable
+  - source: github://electropaultje/modbus-spy-esphome@readout-function-6
+  #- source: github://electropaultje/modbus-spy-esphome@latest-stable
 
 logger:
   level: INFO
