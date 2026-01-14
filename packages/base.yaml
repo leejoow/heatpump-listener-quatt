@@ -12,7 +12,7 @@ esp32:
     type: esp-idf
 
 external_components:
-  - source: github://electropaultje/modbus-spy-esphome@readout-function-6
+  - source: github://electropaultje/modbus-spy-esphome@main
   #- source: github://electropaultje/modbus-spy-esphome@latest-stable
 
 logger:
@@ -24,7 +24,6 @@ ota:
   platform: esphome
 
 wifi:
-  power_save_mode: none
   ap:
     ssid: "heatpump"
     password: "heatpump"
@@ -78,3 +77,15 @@ script:
             - light.turn_on: led_yellow
             - delay: 250ms
             - light.turn_off: led_yellow
+
+# globals:
+#   - id: number_of_messages
+#     type: int
+#     restore_value: no
+#     initial_value: "0"
+
+# interval:
+#   - interval: 1min
+#     then:
+#       - lambda: |-
+#           ESP_LOGW("DebugCounter", "Still online, number of received messages: %d", id(number_of_messages));
